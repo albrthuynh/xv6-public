@@ -52,6 +52,7 @@ trap(struct trapframe *tf)
       ticks++;
       wakeup(&ticks);
       release(&tickslock);
+      windowtick();
     }
     lapiceoi();
     break;

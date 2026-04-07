@@ -10,6 +10,7 @@ struct sleeplock;
 struct stat;
 struct superblock;
 struct trapframe;
+struct win_event;
 
 //entry.S
 void            wrmsr(uint msr, uint64 val);
@@ -185,6 +186,14 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pml4e_t*, addr_t, void*, uint64);
 void            clearpteu(pml4e_t *pgdir, char *uva);
+
+// window.c
+void            windowinit(void);
+int             windowcreate(int, int, int, int);
+int             windowdestroy(int);
+int             windowpostevent(int, struct win_event*);
+int             windowpollevent(int, struct win_event*);
+void            windowtick(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

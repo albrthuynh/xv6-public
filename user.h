@@ -2,6 +2,7 @@
 #include "types.h"
 struct stat;
 struct rtcdate;
+struct win_event;
 
 // system calls
 int fork(void);
@@ -25,6 +26,9 @@ int getpid(void);
 char* sbrk(uint64);
 int sleep(int);
 int uptime(void);
+int win_create(int, int, int, int);
+int win_destroy(int);
+int win_poll(int, struct win_event *);
 
 // ulib.c
 int stat(char*, struct stat*);
