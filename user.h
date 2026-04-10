@@ -3,6 +3,7 @@
 struct stat;
 struct rtcdate;
 struct win_event;
+struct window;
 
 // system calls
 int fork(void);
@@ -29,6 +30,9 @@ int uptime(void);
 int win_create(int, int, int, int);
 int win_destroy(int);
 int win_poll(int, struct win_event *);
+int win_focus(int);
+int win_get_focus(void);
+int win_snapshot(struct window *, int);
 
 // ulib.c
 int stat(char*, struct stat*);

@@ -11,6 +11,7 @@ struct stat;
 struct superblock;
 struct trapframe;
 struct win_event;
+struct window;
 
 //entry.S
 void            wrmsr(uint msr, uint64 val);
@@ -191,6 +192,10 @@ void            clearpteu(pml4e_t *pgdir, char *uva);
 void            windowinit(void);
 int             windowcreate(int, int, int, int);
 int             windowdestroy(int);
+int             windowfocus(int);
+int             windowgetfocus(void);
+int             windowsnapshot(struct window*, int);
+void            windowcleanupowner(int);
 int             windowpostevent(int, struct win_event*);
 int             windowpollevent(int, struct win_event*);
 void            windowtick(void);

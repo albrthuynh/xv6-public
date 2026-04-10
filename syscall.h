@@ -23,3 +23,6 @@
 #define SYS_win_create 22
 #define SYS_win_destroy 23
 #define SYS_win_poll 24
+#define SYS_win_focus 25
+#define SYS_win_get_focus 26
+#define SYS_win_snapshot 27

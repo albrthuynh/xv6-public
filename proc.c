@@ -194,6 +194,10 @@ exit(void)
   end_op();
   proc->cwd = 0;
 
+  // Windows are owned by pid, so we must release them here to avoid
+  // stale focused/z-order entries after process exit.
+  windowcleanupowner(proc->pid);
+
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().

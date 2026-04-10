@@ -125,6 +125,9 @@ extern addr_t sys_uptime(void);
 extern addr_t sys_win_create(void);
 extern addr_t sys_win_destroy(void);
 extern addr_t sys_win_poll(void);
+extern addr_t sys_win_focus(void);
+extern addr_t sys_win_get_focus(void);
+extern addr_t sys_win_snapshot(void);
 
 // PAGEBREAK!
 static addr_t (*syscalls[])(void) = {
@@ -152,6 +155,9 @@ static addr_t (*syscalls[])(void) = {
 [SYS_win_create] sys_win_create,
 [SYS_win_destroy] sys_win_destroy,
 [SYS_win_poll] sys_win_poll,
+[SYS_win_focus] sys_win_focus,
+[SYS_win_get_focus] sys_win_get_focus,
+[SYS_win_snapshot] sys_win_snapshot,
 };
 
 void

@@ -14,7 +14,7 @@ Week 1:
 - [x] Albert: Basic window struct, event loop skeleton.
 
 Week 2:
-- [ ] Albert: Window manager; create/destroy/focus windows, z-ordering, compositing. 
+- [x] Albert: Window manager; create/destroy/focus windows, z-ordering, compositing. 
 - [ ] Purv: Keyboard/mouse input routing to focused window.
 
 Week 3:
