@@ -18,7 +18,7 @@ Week 2:
 - [ ] Purv: Keyboard/mouse input routing to focused window.
 
 Week 3:
-- [ ] Albert: File explorer (readdir integration), terminal window, 
+- [x] Albert: File explorer (readdir integration), terminal window, 
 - [ ] Purv: wallpaper support, macOS-style dock/menu bar. 
 
 Demo polish & final writeup.

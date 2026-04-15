@@ -1,5 +1,6 @@
 #include "types.h"
 #include "stat.h"
+#include "fs.h"
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
@@ -102,4 +103,20 @@ memmove(void *vdst, void *vsrc, int n)
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+
+int
+readdir(int fd, struct dirent *de)
+{
+  int n;
+
+  if(de == 0)
+    return -1;
+
+  n = read(fd, de, sizeof(*de));
+  if(n == sizeof(*de))
+    return 1;
+  if(n == 0)
+    return 0;
+  return -1;
 }

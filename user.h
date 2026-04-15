@@ -4,6 +4,7 @@ struct stat;
 struct rtcdate;
 struct win_event;
 struct window;
+struct dirent;
 
 // system calls
 int fork(void);
@@ -33,6 +34,7 @@ int win_poll(int, struct win_event *);
 int win_focus(int);
 int win_get_focus(void);
 int win_snapshot(struct window *, int);
+int readdir(int, struct dirent *);
 
 // ulib.c
 int stat(char*, struct stat*);
