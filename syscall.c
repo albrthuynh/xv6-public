@@ -130,6 +130,11 @@ extern addr_t sys_win_get_focus(void);
 extern addr_t sys_win_snapshot(void);
 extern addr_t sys_draw_pixel(void);
 extern addr_t sys_draw_rect(void);
+extern addr_t sys_win_set_compositor(void);
+extern addr_t sys_win_post_event(void);
+extern addr_t sys_read_pixel(void);
+extern addr_t sys_draw_bitmap(void);
+extern addr_t sys_win_get_compositor(void);
 
 // PAGEBREAK!
 static addr_t (*syscalls[])(void) = {
@@ -162,6 +167,11 @@ static addr_t (*syscalls[])(void) = {
 [SYS_win_snapshot] sys_win_snapshot,
 [SYS_draw_pixel] sys_draw_pixel,
 [SYS_draw_rect] sys_draw_rect,
+[SYS_win_set_compositor] sys_win_set_compositor,
+[SYS_win_post_event] sys_win_post_event,
+[SYS_read_pixel] sys_read_pixel,
+[SYS_draw_bitmap] sys_draw_bitmap,
+[SYS_win_get_compositor] sys_win_get_compositor,
 };
 
 void

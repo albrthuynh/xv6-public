@@ -20,6 +20,7 @@
 
 extern int windowgetfocus(void);
 extern int windowpostevent(int, struct win_event*);
+extern int windowgetcompositor(void);
 
 static void consputc(int);
 
@@ -220,13 +221,13 @@ consoleintr(int (*getc)(void))
   while((c = getc()) >= 0){
 
     //Week 2
-    int focused = windowgetfocus();
-        if (focused >= 0) {
-		ev.type = WIN_EV_KEY;
-		ev.a = c;
-		ev.b = 0;
-		windowpostevent(focused, &ev);
-		continue;
+    int comp = windowgetcompositor();
+        if (comp >= 0) {
+	  ev.type = WIN_EV_KEY;
+	  ev.a = c;
+	  ev.b = 0;
+	  windowpostevent(comp, &ev); // Send directly to desktop.c
+	  continue;
 	}
 
 

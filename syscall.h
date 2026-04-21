@@ -28,3 +28,8 @@
 #define SYS_win_snapshot 27
 #define SYS_draw_pixel 28
 #define SYS_draw_rect 29
+#define SYS_win_set_compositor 30
+#define SYS_win_post_event 31
+#define SYS_read_pixel 32
+#define SYS_draw_bitmap 33
+#define SYS_win_get_compositor 34

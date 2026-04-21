@@ -95,7 +95,7 @@ kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img
 vectors.S: vectors.pl
 	perl vectors.pl > vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
+ULIB = ulib.o usys.o printf.o umalloc.o gui.o
 
 _%: %.o $(ULIB) user.ld
 	$(LD) $(LDFLAGS) -n -N -T user.ld -e main -Ttext 0x1000 -o $@ $< $(ULIB)
@@ -119,11 +119,11 @@ mkfs: mkfs.c fs.h
 
 UPROGS= \
 	_cat _echo _explorer _forktest _grep _init _kill _ln _ls _mkdir \
-	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop \
+	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about \
 #
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs README wallpaper $(UPROGS)
+	./mkfs fs.img README wallpaper $(UPROGS)
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \

@@ -37,6 +37,11 @@ int win_snapshot(struct window *, int);
 int readdir(int, struct dirent *);
 int draw_pixel(int, int, int);
 int draw_rect(int, int, int, int, int);
+int win_set_compositor(int);
+int win_post_event(int, struct win_event *);
+int read_pixel(int, int);
+int draw_bitmap(int, int, int, int, void*);
+int win_get_compositor(void);
 
 // ulib.c
 int stat(char*, struct stat*);

@@ -19,6 +19,7 @@ static struct {
   int zcount;
   struct window windows[MAX_WINDOWS];
   struct win_event_queue queues[MAX_WINDOWS];
+  int compositor_window_id;
 } wm;
 
 static int
@@ -101,6 +102,7 @@ windowinit(void)
   initlock(&wm.lock, "window");
   wm.next_window_id = 1;
   wm.focused_window_id = -1;
+  wm.compositor_window_id = -1;
   wm.zcount = 0;
   for (i = 0; i < MAX_WINDOWS; i++) {
     wm.zorder[i] = -1;
@@ -367,4 +369,18 @@ windowtick(void)
     wakeup(&wm.queues[i]);
   }
   release(&wm.lock);
+}
+
+void windowsetcompositor(int id) {
+	acquire(&wm.lock);
+	wm.compositor_window_id = id;
+	release(&wm.lock);
+}
+
+int windowgetcompositor(void) {
+	int id;
+	acquire(&wm.lock);
+	id = wm.compositor_window_id;
+	release(&wm.lock);
+	return id;
 }

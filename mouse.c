@@ -13,6 +13,7 @@ static char mouse_byte[3];
 
 extern int windowgetfocus(void);
 extern int windowpostevent(int, struct win_event*);
+extern int windowgetcompositor(void);
 
 // Wait until the PS/2 controller is ready to accept a command
 static void mouse_wait_write() {
@@ -81,15 +82,15 @@ void mouseintr(void) {
 				if (mouse_byte[0] & 0x10) dx |= 0xFFFFFF00;
 				if (mouse_byte[0] & 0x20) dy |= 0xFFFFFF00;
 
-				int focused = windowgetfocus();
-			        if (focused >= 0) {
-					struct win_event ev;
-					ev.type = WIN_EV_MOUSE;
-					// Pack dx and dy into 'a' (lower 16 bits for dx, upper 16 for dy)
-					ev.a = (dx & 0xFFFF) | ((dy & 0xFFFF) << 16);
-					ev.b = buttons;
-					windowpostevent(focused, &ev);
+				int comp = windowgetcompositor();
+				if (comp >= 0) {
+			          struct win_event ev;
+				  ev.type = WIN_EV_MOUSE;
+				  ev.a = (dx & 0xFFFF) | ((dy & 0xFFFF) << 16);
+				  ev.b = buttons;
+				  windowpostevent(comp, &ev);
 				}
+
 				mouse_cycle = 0;
 			        break;
 		}

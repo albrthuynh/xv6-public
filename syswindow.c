@@ -7,6 +7,10 @@
 
 extern void draw_pixel(int x, int y, int color);
 extern void draw_rect(int x, int y, int w, int h, int color);
+extern int read_pixel(int x, int y);
+extern void draw_bitmap(int, int, int, int, uchar*);
+extern void windowsetcompositor(int);
+extern int windowgetcompositor(void);
 
 addr_t
 sys_draw_pixel(void)
@@ -34,6 +38,46 @@ sys_draw_rect(void)
 	      return 0;
 }
 
+addr_t sys_read_pixel(void) {
+	int x, y;
+	if (argint(0, &x) < 0 || argint(1, &y) < 0) return -1;
+	return read_pixel(x, y);
+}
+
+addr_t sys_draw_bitmap(void) {
+	int x, y, w, h;
+	char *buf;
+	// argptr safely fetches the array pointer from user-space memory
+	if (argint(0, &x) < 0 || argint(1, &y) < 0 ||
+	    argint(2, &w) < 0 || argint(3, &h) < 0 ||
+	    argptr(4, &buf, w * h) < 0) {
+		return -1;
+	}
+	draw_bitmap(x, y, w, h, (uchar*)buf);
+	return 0;
+}
+
+
+addr_t sys_win_set_compositor(void) {
+	int win_id;
+	if (argint(0, &win_id) < 0) return -1;
+	windowsetcompositor(win_id);
+        return 0;
+}
+
+addr_t sys_win_get_compositor(void) {
+	return windowgetcompositor();
+}
+
+addr_t sys_win_post_event(void) {
+	int win_id;
+	char *ev_ptr;
+	// Fetch the target window ID and the event struct pointer from user space
+	if (argint(0, &win_id) < 0 || argptr(1, &ev_ptr, sizeof(struct win_event)) < 0) {
+		return -1;
+	}
+	return windowpostevent(win_id, (struct win_event *)ev_ptr);
+}
 
 addr_t
 sys_win_create(void)
