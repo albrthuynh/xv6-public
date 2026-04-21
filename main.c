@@ -10,6 +10,7 @@ static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
 extern pde_t *kpgdir;
 extern char end[]; // first address after kernel loaded from ELF file
+extern void mouseinit(void);
 
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
@@ -28,6 +29,7 @@ main(void)
   cprintf("\ncpu%d: starting Spring 2026 xv6\n\n", cpunum());
   ioapicinit();    // another interrupt controller
   consoleinit();   // console hardware
+  mouseinit();     // mouse hardware
   uartinit();      // serial port
   pinit();         // process table
   binit();         // buffer cache

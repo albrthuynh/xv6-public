@@ -16,6 +16,10 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "window.h"
+
+extern int windowgetfocus(void);
+extern int windowpostevent(int, struct win_event*);
 
 static void consputc(int);
 
@@ -210,9 +214,22 @@ struct {
 consoleintr(int (*getc)(void))
 {
   int c;
+  struct win_event ev;
 
   acquire(&input.lock);
   while((c = getc()) >= 0){
+
+    //Week 2
+    int focused = windowgetfocus();
+        if (focused >= 0) {
+		ev.type = WIN_EV_KEY;
+		ev.a = c;
+		ev.b = 0;
+		windowpostevent(focused, &ev);
+		continue;
+	}
+
+
     switch(c){
     case C('Z'): // reboot
       lidt(0,0);

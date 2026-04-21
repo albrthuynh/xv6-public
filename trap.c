@@ -14,6 +14,8 @@ extern addr_t vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
 
+extern void mouseintr(void);
+
 static void
 mkgate(uint *idt, uint n, addr_t kva, uint pl)
 {
@@ -65,6 +67,10 @@ trap(struct trapframe *tf)
     break;
   case T_IRQ0 + IRQ_KBD:
     kbdintr();
+    lapiceoi();
+    break;
+  case T_IRQ0 + IRQ_MOUSE:
+    mouseintr();
     lapiceoi();
     break;
   case T_IRQ0 + IRQ_COM1:
