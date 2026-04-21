@@ -33,3 +33,4 @@
 #define SYS_read_pixel 32
 #define SYS_draw_bitmap 33
 #define SYS_win_get_compositor 34
+#define SYS_halt 35

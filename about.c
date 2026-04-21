@@ -23,6 +23,9 @@ int main(void) {
   draw_string(140, 54, "ABOUT", 15); // Draw white title text in the blue bar
   draw_string(110, 70, "CS 461", 0); // Draw black text in the body
 
+  draw_rect(120, 125, 80, 15, 4);   // Big Red Button
+  draw_string(135, 130, "SHUTDOWN", 15);
+
   // 5. The Application Event Loop
   struct win_event ev;
   int old_buttons = 0;
@@ -53,6 +56,11 @@ int main(void) {
 	    printf(1, "ABOUT: Close button hit! Initiating shutdown...\n");
             break; // Break the loop to destroy the window!
           }
+
+	  if (rel_x >= 20 && rel_x <= 100 && rel_y >= 75 && rel_y <= 90) {
+		  printf(1, "SYSTEM: Initiating ACPI Shutdown...\n");
+		  halt(); // Call your new system call!
+	  }
         }
         old_buttons = buttons;
       }

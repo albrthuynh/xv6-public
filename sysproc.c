@@ -87,3 +87,11 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+addr_t
+sys_halt(void)
+{
+	//The magic QEMU ACPI shutdown command
+	outw(0x604, 0x2000);
+	return 0;
+}

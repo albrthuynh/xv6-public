@@ -135,6 +135,7 @@ extern addr_t sys_win_post_event(void);
 extern addr_t sys_read_pixel(void);
 extern addr_t sys_draw_bitmap(void);
 extern addr_t sys_win_get_compositor(void);
+extern addr_t sys_halt(void);
 
 // PAGEBREAK!
 static addr_t (*syscalls[])(void) = {
@@ -172,6 +173,7 @@ static addr_t (*syscalls[])(void) = {
 [SYS_read_pixel] sys_read_pixel,
 [SYS_draw_bitmap] sys_draw_bitmap,
 [SYS_win_get_compositor] sys_win_get_compositor,
+[SYS_halt]    sys_halt,
 };
 
 void

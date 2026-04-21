@@ -42,6 +42,7 @@ int win_post_event(int, struct win_event *);
 int read_pixel(int, int);
 int draw_bitmap(int, int, int, int, void*);
 int win_get_compositor(void);
+int halt(void);
 
 // ulib.c
 int stat(char*, struct stat*);
