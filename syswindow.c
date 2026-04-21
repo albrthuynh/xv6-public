@@ -4,6 +4,37 @@
 #include "proc.h"
 #include "window.h"
 
+
+extern void draw_pixel(int x, int y, int color);
+extern void draw_rect(int x, int y, int w, int h, int color);
+
+addr_t
+sys_draw_pixel(void)
+{
+	  int x, y, color;
+	  if (argint(0, &x) < 0 || argint(1, &y) < 0 || argint(2, &color) < 0) {
+		      return -1;
+		        }
+
+	    draw_pixel(x, y, color);
+	      return 0;
+}
+
+addr_t
+sys_draw_rect(void)
+{
+	  int x, y, w, h, color;
+	  if (argint(0, &x) < 0 || argint(1, &y) < 0 ||
+	            argint(2, &w) < 0 || argint(3, &h) < 0 ||
+		          argint(4, &color) < 0) {
+		      return -1;
+		        }
+
+	    draw_rect(x, y, w, h, color);
+	      return 0;
+}
+
+
 addr_t
 sys_win_create(void)
 {

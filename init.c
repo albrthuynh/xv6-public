@@ -19,6 +19,9 @@ main(void)
   dup(0);  // stdout
   dup(0);  // stderr
 
+  //Week 1 Test
+  draw_rect(50, 50, 100, 100, 4);
+
   for(;;){
     printf(1, "init: starting sh\n");
     pid = fork();

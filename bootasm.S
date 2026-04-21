@@ -10,6 +10,8 @@
 .code16                       # Assemble for 16-bit mode
 .global start
 start:
+  movw $0x0013, %ax
+  int $0x10
   cli                         # BIOS enabled interrupts; disable
 
   # Zero data segment registers DS, ES, and SS.

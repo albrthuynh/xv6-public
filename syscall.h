@@ -26,3 +26,5 @@
 #define SYS_win_focus 25
 #define SYS_win_get_focus 26
 #define SYS_win_snapshot 27
+#define SYS_draw_pixel 28
+#define SYS_draw_rect 29

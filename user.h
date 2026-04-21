@@ -35,6 +35,8 @@ int win_focus(int);
 int win_get_focus(void);
 int win_snapshot(struct window *, int);
 int readdir(int, struct dirent *);
+int draw_pixel(int, int, int);
+int draw_rect(int, int, int, int, int);
 
 // ulib.c
 int stat(char*, struct stat*);
