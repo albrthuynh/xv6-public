@@ -116,6 +116,23 @@ draw_finder_icon(int x, int y)
   draw_pixel(x + 10, y + 11, 0);
 }
 
+static void
+request_window_redraws(struct window *wins, int num_wins, int bg_win)
+{
+  struct win_event redraw;
+
+  redraw.type = WIN_EV_REDRAW;
+  redraw.a = 0;
+  redraw.b = 0;
+
+  for(int i = 0; i < num_wins; i++) {
+    if(wins[i].id == bg_win)
+      continue;
+    redraw.window_id = wins[i].id;
+    win_post_event(wins[i].id, &redraw);
+  }
+}
+
 void draw_ui() {
   // 1. macOS Menu Bar (Top)
   draw_rect(0, 0, SCREEN_W, 12, 15); // White bar
@@ -193,15 +210,16 @@ int main(void) {
 	int num_wins = win_snapshot(wins, MAX_WINDOWS);
 	int handled = 0;
 
-	if (num_wins < last_num_wins) {
-	  printf(1, "DESKTOP: Window closed! Wiping screen...\n");
+		if (num_wins < last_num_wins) {
+		  printf(1, "DESKTOP: Window closed! Wiping screen...\n");
 
-	  draw_bitmap(0, 0, SCREEN_W, SCREEN_H, wallpaper_buf);
-	  
-	  draw_ui();
+		  draw_bitmap(0, 0, SCREEN_W, SCREEN_H, wallpaper_buf);
+		  
+		  draw_ui();
+		  request_window_redraws(wins, num_wins, bg_win);
 
-		  save_cursor_area(old_x, old_y, cursor_backup);
-		}
+			  save_cursor_area(old_x, old_y, cursor_backup);
+			}
 
 	  last_num_wins = num_wins;
 	// Iterate backwards (from front of the screen to the back Z-order)

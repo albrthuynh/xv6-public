@@ -11,6 +11,7 @@ enum window_event_type {
   WIN_EV_CLOSE = 2,
   WIN_EV_KEY = 3,
   WIN_EV_MOUSE = 4,
+  WIN_EV_REDRAW = 5,
 };
 
 struct win_event {

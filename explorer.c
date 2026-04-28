@@ -8,8 +8,10 @@
 
 #define EXPLORER_X 12
 #define EXPLORER_Y 24
-#define EXPLORER_W 260
-#define EXPLORER_H 150
+#define EXPLORER_W 210
+#define EXPLORER_H 140
+#define SCREEN_W 320
+#define SCREEN_H 200
 
 #define EXPLORER_PATH_MAX 256
 #define EXPLORER_MAX_ENTRIES 32
@@ -19,8 +21,8 @@
 
 #define EXP_LIST_X 6
 #define EXP_LIST_Y 42
-#define EXP_LIST_W 248
-#define EXP_LIST_H 82
+#define EXP_LIST_W 198
+#define EXP_LIST_H 74
 #define EXP_ROW_H 8
 #define EXP_VISIBLE_ROWS (EXP_LIST_H / EXP_ROW_H)
 
@@ -36,6 +38,10 @@ struct explorer_entry {
 
 struct explorer_state {
   int window_id;
+  int x;
+  int y;
+  int w;
+  int h;
   char cwd[EXPLORER_PATH_MAX];
   struct explorer_entry entries[EXPLORER_MAX_ENTRIES];
   int nentries;
@@ -45,6 +51,26 @@ struct explorer_state {
   int old_buttons;
   int tick_divider;
 };
+
+static void
+choose_window_origin(int *x, int *y)
+{
+  struct window wins[MAX_WINDOWS];
+  int n;
+  int slot;
+
+  n = win_snapshot(wins, MAX_WINDOWS);
+  if(n < 1)
+    n = 1;
+
+  slot = (n - 1) % 4;
+  *x = EXPLORER_X + slot * 12;
+  *y = EXPLORER_Y + slot * 8;
+  if(*x + EXPLORER_W > SCREEN_W)
+    *x = SCREEN_W - EXPLORER_W;
+  if(*y + EXPLORER_H > SCREEN_H)
+    *y = SCREEN_H - EXPLORER_H;
+}
 
 static int
 copy_bounded(char *dst, int max, const char *src)
@@ -348,8 +374,8 @@ draw_entry_row(struct explorer_state *st, int row, int idx)
   int i;
   int pos;
 
-  x = EXPLORER_X + EXP_LIST_X;
-  y = EXPLORER_Y + EXP_LIST_Y + row * EXP_ROW_H;
+  x = st->x + EXP_LIST_X;
+  y = st->y + EXP_LIST_Y + row * EXP_ROW_H;
   if(idx >= st->nentries){
     draw_rect(x, y, EXP_LIST_W, EXP_ROW_H - 1, 15);
     return;
@@ -379,25 +405,28 @@ static void
 draw_explorer(struct explorer_state *st)
 {
   int i;
+  int title_color;
 
-  draw_rect(EXPLORER_X, EXPLORER_Y, EXPLORER_W, EXPLORER_H, 7);
-  draw_rect(EXPLORER_X, EXPLORER_Y, EXPLORER_W, 12, 1);
-  draw_rect(EXPLORER_X + 2, EXPLORER_Y + 2, 8, 8, 4);
-  draw_string(EXPLORER_X + 100, EXPLORER_Y + 4, "EXPLORER", 15);
+  title_color = (win_get_focus() == st->window_id) ? 1 : 8;
 
-  draw_rect(EXPLORER_X + 4, EXPLORER_Y + 16, EXPLORER_W - 8, 10, 15);
-  draw_label_clipped(EXPLORER_X + 6, EXPLORER_Y + 18, st->cwd, 60, 0);
+  draw_rect(st->x, st->y, st->w, st->h, 7);
+  draw_rect(st->x, st->y, st->w, 12, title_color);
+  draw_rect(st->x + 2, st->y + 2, 8, 8, 4);
+  draw_string(st->x + 75, st->y + 4, "EXPLORER", 15);
 
-  draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + EXP_LIST_Y, EXP_LIST_W, EXP_LIST_H, 15);
-  draw_string(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 34, "FILES", 0);
+  draw_rect(st->x + 4, st->y + 16, st->w - 8, 10, 15);
+  draw_label_clipped(st->x + 6, st->y + 18, st->cwd, 60, 0);
+
+  draw_rect(st->x + EXP_LIST_X, st->y + EXP_LIST_Y, EXP_LIST_W, EXP_LIST_H, 15);
+  draw_string(st->x + EXP_LIST_X, st->y + 34, "FILES", 0);
 
   for(i = 0; i < EXP_VISIBLE_ROWS; i++)
     draw_entry_row(st, i, st->scroll + i);
 
-  draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 132, 18, 10, 2);
-  draw_rect(EXPLORER_X + EXP_LIST_X + 22, EXPLORER_Y + 132, 24, 10, 8);
-  draw_string(EXPLORER_X + EXP_LIST_X + 4, EXPLORER_Y + 135, "UP", 15);
-  draw_string(EXPLORER_X + EXP_LIST_X + 26, EXPLORER_Y + 135, "DOWN", 15);
+  draw_rect(st->x + EXP_LIST_X, st->y + 122, 18, 10, 2);
+  draw_rect(st->x + EXP_LIST_X + 22, st->y + 122, 24, 10, 8);
+  draw_string(st->x + EXP_LIST_X + 4, st->y + 125, "UP", 15);
+  draw_string(st->x + EXP_LIST_X + 26, st->y + 125, "DOWN", 15);
 }
 
 static void
@@ -455,6 +484,9 @@ main(int argc, char *argv[])
   int idx;
 
   memset(&st, 0, sizeof(st));
+  st.w = EXPLORER_W;
+  st.h = EXPLORER_H;
+  choose_window_origin(&st.x, &st.y);
   if(argc > 1){
     if(copy_bounded(st.cwd, sizeof(st.cwd), argv[1]) < 0){
       printf(2, "explorer: start path too long\n");
@@ -464,7 +496,7 @@ main(int argc, char *argv[])
     exit();
   }
 
-  st.window_id = win_create(EXPLORER_X, EXPLORER_Y, EXPLORER_W, EXPLORER_H);
+  st.window_id = win_create(st.x, st.y, st.w, st.h);
   if(st.window_id < 0){
     printf(2, "explorer: win_create failed\n");
     exit();
@@ -484,14 +516,13 @@ main(int argc, char *argv[])
     if(ev.type == WIN_EV_CLOSE)
       break;
 
-    if(ev.type == WIN_EV_TICK){
-      st.tick_divider++;
-      if(st.tick_divider >= 8){
-        draw_explorer(&st);
-        st.tick_divider = 0;
-      }
+    if(ev.type == WIN_EV_REDRAW){
+      draw_explorer(&st);
       continue;
     }
+
+    if(ev.type == WIN_EV_TICK)
+      continue;
 
     if(ev.type == WIN_EV_KEY){
       if(ev.a == 'q')
@@ -516,6 +547,9 @@ main(int argc, char *argv[])
     buttons = ev.b;
 
     if((buttons & 1) && !(st.old_buttons & 1)){
+      int did_redraw;
+
+      did_redraw = 0;
       if(rel_x >= 0 && rel_x <= 15 && rel_y >= 0 && rel_y <= 15)
         break;
 
@@ -525,23 +559,28 @@ main(int argc, char *argv[])
         if(idx >= 0 && idx < st.nentries){
           open_selected(&st, idx);
           draw_explorer(&st);
+          did_redraw = 1;
         }
       }
 
-      if(rel_y >= 132 && rel_y <= 142){
+      if(rel_y >= 122 && rel_y <= 132){
         if(rel_x >= EXP_LIST_X && rel_x <= EXP_LIST_X + 18){
           if(st.scroll > 0)
             st.scroll--;
           draw_explorer(&st);
+          did_redraw = 1;
         } else if(rel_x >= EXP_LIST_X + 22 && rel_x <= EXP_LIST_X + 46){
           if(st.scroll + EXP_VISIBLE_ROWS < st.nentries)
             st.scroll++;
           draw_explorer(&st);
+          did_redraw = 1;
         }
       }
-    }
-    st.old_buttons = buttons;
-  }
+      if(!did_redraw)
+        draw_explorer(&st);
+	    }
+	    st.old_buttons = buttons;
+	  }
 
   win_destroy(st.window_id);
   wake_desktop();

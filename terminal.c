@@ -4,20 +4,26 @@
 #include "window.h"
 #include "gui.h"
 
-#define TERMINAL_X 20
+#define TERMINAL_X 36
 #define TERMINAL_Y 28
-#define TERMINAL_W 280
-#define TERMINAL_H 148
+#define TERMINAL_W 220
+#define TERMINAL_H 132
+#define SCREEN_W 320
+#define SCREEN_H 200
 
 #define TERM_HISTORY_LINES 72
-#define TERM_COLS 64
-#define TERM_ROWS 16
+#define TERM_COLS 49
+#define TERM_ROWS 13
 #define TERM_INPUT_MAX 128
 #define TERM_PATH_MAX 256
 #define TERM_MAX_ARGS 10
 
 struct terminal_state {
   int window_id;
+  int x;
+  int y;
+  int w;
+  int h;
   char history[TERM_HISTORY_LINES][TERM_COLS + 1];
   int history_count;
   char input[TERM_INPUT_MAX];
@@ -28,6 +34,26 @@ struct terminal_state {
 };
 
 static struct terminal_state terminal_state;
+
+static void
+choose_window_origin(int *x, int *y)
+{
+  struct window wins[MAX_WINDOWS];
+  int n;
+  int slot;
+
+  n = win_snapshot(wins, MAX_WINDOWS);
+  if(n < 1)
+    n = 1;
+
+  slot = (n - 1) % 3;
+  *x = TERMINAL_X + slot * 10;
+  *y = TERMINAL_Y + slot * 8;
+  if(*x + TERMINAL_W > SCREEN_W)
+    *x = SCREEN_W - TERMINAL_W;
+  if(*y + TERMINAL_H > SCREEN_H)
+    *y = SCREEN_H - TERMINAL_H;
+}
 
 static int
 copy_bounded(char *dst, int max, const char *src)
@@ -220,28 +246,31 @@ draw_terminal(struct terminal_state *st)
   int first;
   int i;
   int y;
+  int title_color;
 
-  draw_rect(TERMINAL_X, TERMINAL_Y, TERMINAL_W, TERMINAL_H, 8);
-  draw_rect(TERMINAL_X, TERMINAL_Y, TERMINAL_W, 12, 0);
-  draw_rect(TERMINAL_X + 2, TERMINAL_Y + 2, 8, 8, 4);
-  draw_string(TERMINAL_X + 124, TERMINAL_Y + 4, "TERMINAL", 15);
+  title_color = (win_get_focus() == st->window_id) ? 1 : 8;
 
-  draw_rect(TERMINAL_X + 4, TERMINAL_Y + 16, TERMINAL_W - 8, 104, 0);
-  draw_rect(TERMINAL_X + 4, TERMINAL_Y + 124, TERMINAL_W - 8, 18, 1);
+  draw_rect(st->x, st->y, st->w, st->h, 8);
+  draw_rect(st->x, st->y, st->w, 12, title_color);
+  draw_rect(st->x + 2, st->y + 2, 8, 8, 4);
+  draw_string(st->x + 94, st->y + 4, "TERMINAL", 15);
+
+  draw_rect(st->x + 4, st->y + 16, st->w - 8, 86, 0);
+  draw_rect(st->x + 4, st->y + 106, st->w - 8, 18, 1);
 
   first = 0;
   if(st->history_count > TERM_ROWS)
     first = st->history_count - TERM_ROWS;
 
-  y = TERMINAL_Y + 20;
+  y = st->y + 20;
   for(i = first; i < st->history_count && i < first + TERM_ROWS; i++){
-    draw_rect(TERMINAL_X + 6, y - 1, TERMINAL_W - 12, 7, 0);
-    draw_string(TERMINAL_X + 8, y, st->history[i], 15);
+    draw_rect(st->x + 6, y - 1, st->w - 12, 7, 0);
+    draw_string(st->x + 8, y, st->history[i], 15);
     y += 6;
   }
 
-  draw_rect(TERMINAL_X + 6, TERMINAL_Y + 128, TERMINAL_W - 12, 10, 1);
-  draw_input_tail(TERMINAL_X + 8, TERMINAL_Y + 130, "TERM> ", st->input);
+  draw_rect(st->x + 6, st->y + 110, st->w - 12, 10, 1);
+  draw_input_tail(st->x + 8, st->y + 112, "TERM> ", st->input);
 }
 
 static void
@@ -429,12 +458,15 @@ main(void)
 
   st = &terminal_state;
   memset(st, 0, sizeof(*st));
+  st->w = TERMINAL_W;
+  st->h = TERMINAL_H;
+  choose_window_origin(&st->x, &st->y);
   should_exit = 0;
   history_clear(st);
   if(copy_bounded(st->cwd, sizeof(st->cwd), ".") < 0)
     exit();
 
-  st->window_id = win_create(TERMINAL_X, TERMINAL_Y, TERMINAL_W, TERMINAL_H);
+  st->window_id = win_create(st->x, st->y, st->w, st->h);
   if(st->window_id < 0){
     printf(2, "terminal: win_create failed\n");
     exit();
@@ -454,27 +486,27 @@ main(void)
     if(ev.type == WIN_EV_CLOSE)
       break;
 
-    if(ev.type == WIN_EV_TICK){
-      st->tick_divider++;
-      if(st->tick_divider >= 8){
-        draw_terminal(st);
-        st->tick_divider = 0;
-      }
+    if(ev.type == WIN_EV_REDRAW){
+      draw_terminal(st);
       continue;
     }
+
+    if(ev.type == WIN_EV_TICK)
+      continue;
 
     if(ev.type == WIN_EV_MOUSE){
       rel_x = (short)(ev.a & 0xFFFF);
       rel_y = (short)((ev.a >> 16) & 0xFFFF);
       buttons = ev.b;
 
-      if((buttons & 1) && !(st->old_buttons & 1)){
-        if(rel_x >= 0 && rel_x <= 15 && rel_y >= 0 && rel_y <= 15)
-          break;
-      }
-      st->old_buttons = buttons;
-      continue;
-    }
+	      if((buttons & 1) && !(st->old_buttons & 1)){
+	        if(rel_x >= 0 && rel_x <= 15 && rel_y >= 0 && rel_y <= 15)
+	          break;
+	        draw_terminal(st);
+	      }
+	      st->old_buttons = buttons;
+	      continue;
+	    }
 
     if(ev.type != WIN_EV_KEY)
       continue;

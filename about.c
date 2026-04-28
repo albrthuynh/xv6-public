@@ -3,9 +3,57 @@
 #include "window.h"
 #include "gui.h"
 
+#define ABOUT_X 100
+#define ABOUT_Y 50
+#define ABOUT_W 120
+#define ABOUT_H 100
+#define SCREEN_W 320
+#define SCREEN_H 200
+
+static void
+choose_window_origin(int *x, int *y)
+{
+  struct window wins[MAX_WINDOWS];
+  int n;
+  int slot;
+
+  n = win_snapshot(wins, MAX_WINDOWS);
+  if(n < 1)
+    n = 1;
+
+  slot = (n - 1) % 5;
+  *x = ABOUT_X + slot * 10;
+  *y = ABOUT_Y + slot * 8;
+  if(*x + ABOUT_W > SCREEN_W)
+    *x = SCREEN_W - ABOUT_W;
+  if(*y + ABOUT_H > SCREEN_H)
+    *y = SCREEN_H - ABOUT_H;
+}
+
+static void
+draw_about(int win, int x, int y)
+{
+  int title_color;
+
+  title_color = (win_get_focus() == win) ? 1 : 8;
+  draw_rect(x, y, ABOUT_W, ABOUT_H, 7);
+  draw_rect(x, y, ABOUT_W, 12, title_color);
+  draw_rect(x + 2, y + 2, 8, 8, 4);
+  draw_string(x + 40, y + 4, "ABOUT", 15);
+  draw_string(x + 10, y + 20, "CS 461", 0);
+
+  draw_rect(x + 20, y + 75, 80, 15, 4);
+  draw_string(x + 35, y + 80, "SHUTDOWN", 15);
+}
+
 int main(void) {
+  int x;
+  int y;
+
+  choose_window_origin(&x, &y);
+
   // 1. Request a window from the kernel
-  int win = win_create(100, 50, 120, 80);
+  int win = win_create(x, y, ABOUT_W, ABOUT_H);
   if (win < 0) {
     printf(1, "about: failed to create window\n");
     exit();
@@ -14,17 +62,7 @@ int main(void) {
   // 2. Focus the window to receive events
   win_focus(win);
 
-  // 3. Draw the Application UI (Absolute Coordinates)
-  draw_rect(100, 50, 120, 80, 7); // Light gray application background
-  draw_rect(100, 50, 120, 12, 1); // Blue title bar
-  draw_rect(102, 52, 8, 8, 4);    // Red decorative "close" button
-  
-  // 4. Draw the Important Information
-  draw_string(140, 54, "ABOUT", 15); // Draw white title text in the blue bar
-  draw_string(110, 70, "CS 461", 0); // Draw black text in the body
-
-  draw_rect(120, 125, 80, 15, 4);   // Big Red Button
-  draw_string(135, 130, "SHUTDOWN", 15);
+  draw_about(win, x, y);
 
   // 5. The Application Event Loop
   struct win_event ev;
@@ -33,14 +71,22 @@ int main(void) {
   while (1) {
     if (win_poll(win, &ev) > 0) {
       
-      // Keep the keyboard shortcut as a fallback
-      if (ev.type == WIN_EV_KEY && ev.a == 'q') {
-	printf(1, "ABOUT: 'q' pressed! Initiating shutdown...\n");
+	      // Keep the keyboard shortcut as a fallback
+	      if (ev.type == WIN_EV_KEY && ev.a == 'q') {
+		printf(1, "ABOUT: 'q' pressed! Initiating shutdown...\n");
         break;
       }
+
+	      if (ev.type == WIN_EV_REDRAW) {
+	        draw_about(win, x, y);
+	        continue;
+	      }
       
-      // --- CLICK DETECTION ---
-      if (ev.type == WIN_EV_MOUSE) {
+	      if (ev.type == WIN_EV_TICK)
+	        continue;
+
+	      // --- CLICK DETECTION ---
+	      if (ev.type == WIN_EV_MOUSE) {
         // Unpack the relative X and Y coordinates sent by desktop.c
         short rel_x = (short)(ev.a & 0xFFFF);
         short rel_y = (short)((ev.a >> 16) & 0xFFFF);
@@ -57,13 +103,15 @@ int main(void) {
             break; // Break the loop to destroy the window!
           }
 
-	  if (rel_x >= 20 && rel_x <= 100 && rel_y >= 75 && rel_y <= 90) {
-		  printf(1, "SYSTEM: Initiating ACPI Shutdown...\n");
-		  halt(); // Call your new system call!
-	  }
-        }
-        old_buttons = buttons;
-      }
+		  if (rel_x >= 20 && rel_x <= 100 && rel_y >= 75 && rel_y <= 90) {
+			  printf(1, "SYSTEM: Initiating ACPI Shutdown...\n");
+			  halt(); // Call your new system call!
+		  }
+	        }
+	        if ((buttons & 1) && !(old_buttons & 1))
+	          draw_about(win, x, y);
+	        old_buttons = buttons;
+	      }
     }
   }
 
