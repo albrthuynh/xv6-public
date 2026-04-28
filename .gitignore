@@ -15,6 +15,10 @@ initcode.out
 kernel
 kernelmemfs
 mkfs
+wallgen
+wallpaper_grid
+wallpaper_party
+wallpaper_night
 .gdbinit
 .gdb_history
 .depend

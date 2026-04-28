@@ -11,6 +11,15 @@
 
 uchar wallpaper_buf[SCREEN_W * SCREEN_H];
 
+static char *wallpaper_files[] = {
+  "wallpaper",
+  "wallpaper_grid",
+  "wallpaper_party",
+  "wallpaper_night",
+};
+
+#define WALLPAPER_COUNT (sizeof(wallpaper_files) / sizeof(wallpaper_files[0]))
+
 static char *cursor_shape[CURSOR_H] = {
   "X         ",
   "XX        ",
@@ -117,6 +126,21 @@ draw_finder_icon(int x, int y)
 }
 
 static void
+draw_wallpaper_icon(int x, int y)
+{
+  draw_rect(x, y, 16, 16, 13);
+  draw_rect(x + 1, y + 1, 14, 14, 15);
+  draw_rect(x + 3, y + 3, 10, 5, 11);
+  draw_rect(x + 3, y + 8, 10, 5, 10);
+  draw_rect(x + 5, y + 10, 3, 3, 2);
+  draw_rect(x + 9, y + 9, 3, 4, 4);
+  draw_pixel(x + 11, y + 4, 14);
+  draw_pixel(x + 12, y + 5, 14);
+  draw_pixel(x + 10, y + 5, 14);
+  draw_pixel(x + 11, y + 6, 14);
+}
+
+static void
 request_window_redraws(struct window *wins, int num_wins, int bg_win, int ordered)
 {
   struct win_event redraw;
@@ -169,26 +193,40 @@ void draw_ui() {
 
   draw_terminal_icon(110, 182);
   draw_finder_icon(140, 182);
+  draw_wallpaper_icon(170, 182);
 }
 
-void load_wallpaper() {
-  int fd = open("wallpaper", O_RDONLY);
+static void
+fill_wallpaper(uchar color)
+{
+  for(int i = 0; i < SCREEN_W * SCREEN_H; i++)
+    wallpaper_buf[i] = color;
+  draw_bitmap(0, 0, SCREEN_W, SCREEN_H, wallpaper_buf);
+}
+
+void load_wallpaper(int wallpaper_id) {
+  int fd;
+  int n;
+
+  if(wallpaper_id < 0 || wallpaper_id >= WALLPAPER_COUNT)
+    wallpaper_id = 0;
+
+  fd = open(wallpaper_files[wallpaper_id], O_RDONLY);
   if(fd < 0){
     // Fallback if no wallpaper file exists: solid Cyan background
-    draw_rect(0, 0, SCREEN_W, SCREEN_H, 3); 
+    fill_wallpaper(3);
     return;
-  }else{
-    read(fd, wallpaper_buf, sizeof(wallpaper_buf));
-    close(fd);
+  }
+
+  n = read(fd, wallpaper_buf, sizeof(wallpaper_buf));
+  close(fd);
+  if(n != sizeof(wallpaper_buf)) {
+    fill_wallpaper(3);
+    return;
   }
 
   // Read a 320x200 raw 8-bit color array from the xv6 filesystem
-  // We read line-by-line to save user-space memory
-  for(int y = 0; y < SCREEN_H; y++) {
-    for(int x = 0; x < SCREEN_W; x++) {
-	draw_pixel(x, y, wallpaper_buf[y * SCREEN_W + x]);
-    }
-  }
+  draw_bitmap(0, 0, SCREEN_W, SCREEN_H, wallpaper_buf);
 }
 
 int main(void) {
@@ -210,13 +248,27 @@ int main(void) {
 
   win_set_compositor(bg_win);
 
-  load_wallpaper();
+  load_wallpaper(0);
   draw_ui();
   save_cursor_area(mouse_x, mouse_y, cursor_backup);
   draw_cursor(mouse_x, mouse_y);
 
   while (1) {
     if (win_poll(bg_win, &ev) > 0) {
+      if (ev.type == WIN_EV_WALLPAPER) {
+	struct window wins[MAX_WINDOWS];
+	int num_wins;
+
+	load_wallpaper(ev.a);
+	draw_ui();
+	num_wins = win_snapshot(wins, MAX_WINDOWS);
+	request_window_redraws(wins, num_wins, bg_win, 1);
+	save_cursor_area(mouse_x, mouse_y, cursor_backup);
+	draw_cursor(mouse_x, mouse_y);
+	last_num_wins = num_wins;
+	continue;
+      }
+
       if (ev.type == WIN_EV_KEY) {
 	int focused = win_get_focus();
 	// Forward the keystroke to whatever app currently holds focus
@@ -364,6 +416,14 @@ int main(void) {
 			if (fork() == 0) {
 				char *args[] = {"explorer", 0};
 				exec("explorer", args);
+				exit();
+			}
+		}
+		// Wallpaper Icon bounding box
+		if (mouse_x >= 170 && mouse_x <= 186) {
+			if (fork() == 0) {
+				char *args[] = {"wallpick", 0};
+				exec("wallpick", args);
 				exit();
 			}
 		}

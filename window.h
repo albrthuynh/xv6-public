@@ -13,6 +13,7 @@ enum window_event_type {
   WIN_EV_MOUSE = 4,
   WIN_EV_REDRAW = 5,
   WIN_EV_MOVE = 6,
+  WIN_EV_WALLPAPER = 7,
 };
 
 struct win_event {

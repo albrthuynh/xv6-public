@@ -119,16 +119,23 @@ mkfs: mkfs.c fs.h param.h
 
 UPROGS= \
 	_cat _echo _explorer _forktest _grep _init _kill _ln _ls _mkdir \
-	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about _bench \
+	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about _bench _wallpick \
 #
 
-fs.img: mkfs README wallpaper $(UPROGS)
-	./mkfs fs.img README wallpaper $(UPROGS)
+wallgen: wallgen.c
+	gcc -Werror -Wall -o wallgen wallgen.c
+
+wallpaper_grid wallpaper_party wallpaper_night: wallgen
+	./wallgen
+
+fs.img: mkfs README wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
+	./mkfs fs.img README wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
-	initcode initcode.out kernel xv6.img fs.img kernelmemfs mkfs \
+	initcode initcode.out kernel xv6.img fs.img kernelmemfs mkfs wallgen \
+	wallpaper_grid wallpaper_party wallpaper_night \
 	.gdbinit .depend \
 	_*
 
@@ -187,7 +194,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c explorer.c forktest.c grep.c kill.c\
-	ln.c ls.c mkdir.c rm.c stressfs.c terminal.c usertests.c wc.c wm.c zombie.c\
+	ln.c ls.c mkdir.c rm.c stressfs.c terminal.c usertests.c wc.c wm.c zombie.c wallpick.c\
 	printf.c umalloc.c\
 	README *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl
