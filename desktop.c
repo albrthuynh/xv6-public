@@ -9,10 +9,32 @@
 
 uchar wallpaper_buf[SCREEN_W * SCREEN_H];
 
+static void
+draw_menu_apple(int x, int y)
+{
+  uchar mark[8] = {
+    0b00100000,
+    0b00010000,
+    0b01111000,
+    0b11111100,
+    0b11101100,
+    0b11111100,
+    0b01111000,
+    0b00110000,
+  };
+
+  for(int row = 0; row < 8; row++) {
+    for(int col = 0; col < 8; col++) {
+      if(mark[row] & (1 << (7 - col)))
+        draw_pixel(x + col, y + row, 0);
+    }
+  }
+}
+
 void draw_ui() {
   // 1. macOS Menu Bar (Top)
   draw_rect(0, 0, SCREEN_W, 12, 15); // White bar
-  draw_rect(5, 2, 8, 8, 0);          // Fake "Apple" logo in black
+  draw_menu_apple(5, 2);
 
   // 2. macOS Dock (Bottom)
   draw_rect(100, 180, 120, 20, 7);   // Light gray dock background
