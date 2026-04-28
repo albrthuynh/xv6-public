@@ -33,6 +33,7 @@ int win_destroy(int);
 int win_poll(int, struct win_event *);
 int win_focus(int);
 int win_get_focus(void);
+int win_move(int, int, int);
 int win_snapshot(struct window *, int);
 int readdir(int, struct dirent *);
 int draw_pixel(int, int, int);

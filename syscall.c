@@ -127,6 +127,7 @@ extern addr_t sys_win_destroy(void);
 extern addr_t sys_win_poll(void);
 extern addr_t sys_win_focus(void);
 extern addr_t sys_win_get_focus(void);
+extern addr_t sys_win_move(void);
 extern addr_t sys_win_snapshot(void);
 extern addr_t sys_draw_pixel(void);
 extern addr_t sys_draw_rect(void);
@@ -165,6 +166,7 @@ static addr_t (*syscalls[])(void) = {
 [SYS_win_poll] sys_win_poll,
 [SYS_win_focus] sys_win_focus,
 [SYS_win_get_focus] sys_win_get_focus,
+[SYS_win_move] sys_win_move,
 [SYS_win_snapshot] sys_win_snapshot,
 [SYS_draw_pixel] sys_draw_pixel,
 [SYS_draw_rect] sys_draw_rect,

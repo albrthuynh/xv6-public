@@ -194,6 +194,7 @@ int             windowcreate(int, int, int, int);
 int             windowdestroy(int);
 int             windowfocus(int);
 int             windowgetfocus(void);
+int             windowmove(int, int, int);
 int             windowsnapshot(struct window*, int);
 void            windowcleanupowner(int);
 int             windowpostevent(int, struct win_event*);

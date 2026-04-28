@@ -94,6 +94,23 @@ focus_top_nolock(void)
   wm.focused_window_id = wm.windows[wm.zorder[wm.zcount - 1]].id;
 }
 
+static int
+proc_controls_window_nolock(int slot)
+{
+  int comp_slot;
+
+  if(proc == 0)
+    return 1;
+  if(wm.windows[slot].owner_pid == proc->pid)
+    return 1;
+
+  comp_slot = slot_for_window_id_nolock(wm.compositor_window_id);
+  if(comp_slot >= 0 && wm.windows[comp_slot].owner_pid == proc->pid)
+    return 1;
+
+  return 0;
+}
+
 void
 windowinit(void)
 {
@@ -164,7 +181,7 @@ windowdestroy(int window_id)
     return -1;
   }
 
-  if (proc && wm.windows[i].owner_pid != proc->pid) {
+  if (!proc_controls_window_nolock(i)) {
     release(&wm.lock);
     return -1;
   }
@@ -192,13 +209,36 @@ windowfocus(int window_id)
     return -1;
   }
 
-  if (proc && wm.windows[i].owner_pid != proc->pid) {
+  if (!proc_controls_window_nolock(i)) {
     release(&wm.lock);
     return -1;
   }
 
   zpush_top_slot_nolock(i);
   wm.focused_window_id = window_id;
+  release(&wm.lock);
+  return 0;
+}
+
+int
+windowmove(int window_id, int x, int y)
+{
+  int i;
+
+  acquire(&wm.lock);
+  i = slot_for_window_id_nolock(window_id);
+  if (i < 0) {
+    release(&wm.lock);
+    return -1;
+  }
+
+  if (!proc_controls_window_nolock(i)) {
+    release(&wm.lock);
+    return -1;
+  }
+
+  wm.windows[i].x = x;
+  wm.windows[i].y = y;
   release(&wm.lock);
   return 0;
 }

@@ -34,3 +34,4 @@
 #define SYS_draw_bitmap 33
 #define SYS_win_get_compositor 34
 #define SYS_halt 35
+#define SYS_win_move 36

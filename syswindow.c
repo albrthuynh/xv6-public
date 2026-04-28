@@ -148,6 +148,19 @@ sys_win_get_focus(void)
 }
 
 addr_t
+sys_win_move(void)
+{
+  int window_id;
+  int x;
+  int y;
+
+  if (argint(0, &window_id) < 0 || argint(1, &x) < 0 || argint(2, &y) < 0) {
+    return -1;
+  }
+  return windowmove(window_id, x, y);
+}
+
+addr_t
 sys_win_snapshot(void)
 {
   addr_t user_windows_ptr;

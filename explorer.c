@@ -521,6 +521,12 @@ main(int argc, char *argv[])
       continue;
     }
 
+    if(ev.type == WIN_EV_MOVE){
+      st.x = ev.a;
+      st.y = ev.b;
+      continue;
+    }
+
     if(ev.type == WIN_EV_TICK)
       continue;
 

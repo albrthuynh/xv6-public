@@ -81,6 +81,12 @@ int main(void) {
 	        draw_about(win, x, y);
 	        continue;
 	      }
+
+	      if (ev.type == WIN_EV_MOVE) {
+	        x = ev.a;
+	        y = ev.b;
+	        continue;
+	      }
       
 	      if (ev.type == WIN_EV_TICK)
 	        continue;
