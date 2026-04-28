@@ -119,7 +119,7 @@ mkfs: mkfs.c fs.h param.h
 
 UPROGS= \
 	_cat _echo _explorer _forktest _grep _init _kill _ln _ls _mkdir \
-	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about \
+	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about _bench \
 #
 
 fs.img: mkfs README wallpaper $(UPROGS)
