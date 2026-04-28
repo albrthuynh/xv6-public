@@ -18,9 +18,9 @@
 #define EXPLORER_PREVIEW_COLS 24
 
 #define EXP_LIST_X 6
-#define EXP_LIST_Y 30
-#define EXP_LIST_W 80
-#define EXP_LIST_H 90
+#define EXP_LIST_Y 42
+#define EXP_LIST_W 188
+#define EXP_LIST_H 82
 #define EXP_ROW_H 8
 #define EXP_VISIBLE_ROWS (EXP_LIST_H / EXP_ROW_H)
 
@@ -344,8 +344,9 @@ draw_entry_row(struct explorer_state *st, int row, int idx)
   int x;
   int y;
   int text_color;
-  char label[18];
+  char label[32];
   int i;
+  int pos;
 
   x = EXPLORER_X + EXP_LIST_X;
   y = EXPLORER_Y + EXP_LIST_Y + row * EXP_ROW_H;
@@ -362,11 +363,15 @@ draw_entry_row(struct explorer_state *st, int row, int idx)
     text_color = 0;
   }
 
-  label[0] = (st->entries[idx].type == T_DIR) ? 'D' : 'F';
-  label[1] = ' ';
-  for(i = 0; i < 14 && st->entries[idx].name[i]; i++)
-    label[i + 2] = safe_char(st->entries[idx].name[i]);
-  label[i + 2] = 0;
+  if(st->entries[idx].type == T_DIR)
+    copy_bounded(label, sizeof(label), "DIR  ");
+  else
+    copy_bounded(label, sizeof(label), "FILE ");
+
+  pos = strlen(label);
+  for(i = 0; pos + 1 < (int)sizeof(label) && st->entries[idx].name[i]; i++)
+    label[pos++] = safe_char(st->entries[idx].name[i]);
+  label[pos] = 0;
   draw_string(x + 2, y + 1, label, text_color);
 }
 
@@ -380,34 +385,19 @@ draw_explorer(struct explorer_state *st)
   draw_rect(EXPLORER_X + 2, EXPLORER_Y + 2, 8, 8, 4);
   draw_string(EXPLORER_X + 70, EXPLORER_Y + 4, "EXPLORER", 15);
 
-  draw_rect(EXPLORER_X + 20, EXPLORER_Y + 2, 20, 8, 2);
-  draw_rect(EXPLORER_X + 44, EXPLORER_Y + 2, 28, 8, 3);
-  draw_string(EXPLORER_X + 25, EXPLORER_Y + 4, "UP", 15);
-  draw_string(EXPLORER_X + 48, EXPLORER_Y + 4, "REF", 0);
-
   draw_rect(EXPLORER_X + 4, EXPLORER_Y + 16, EXPLORER_W - 8, 10, 15);
   draw_label_clipped(EXPLORER_X + 6, EXPLORER_Y + 18, st->cwd, 28, 0);
 
   draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + EXP_LIST_Y, EXP_LIST_W, EXP_LIST_H, 15);
-  draw_rect(EXPLORER_X + EXP_PREVIEW_X, EXPLORER_Y + EXP_PREVIEW_Y, EXP_PREVIEW_W, EXP_PREVIEW_H, 12);
-  draw_string(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 24, "FILES", 0);
-  draw_string(EXPLORER_X + EXP_PREVIEW_X, EXPLORER_Y + 24, "PREVIEW", 0);
+  draw_string(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 34, "FILES", 0);
 
   for(i = 0; i < EXP_VISIBLE_ROWS; i++)
     draw_entry_row(st, i, st->scroll + i);
 
-  draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 124, 18, 10, 2);
-  draw_rect(EXPLORER_X + EXP_LIST_X + 22, EXPLORER_Y + 124, 18, 10, 8);
-  draw_string(EXPLORER_X + EXP_LIST_X + 4, EXPLORER_Y + 127, "UP", 15);
-  draw_string(EXPLORER_X + EXP_LIST_X + 27, EXPLORER_Y + 127, "DN", 15);
-
-  for(i = 0; i < EXPLORER_PREVIEW_LINES; i++){
-    draw_rect(EXPLORER_X + EXP_PREVIEW_X + 2, EXPLORER_Y + EXP_PREVIEW_Y + 4 + i * 10,
-              EXP_PREVIEW_W - 4, 8, 12);
-    draw_string(EXPLORER_X + EXP_PREVIEW_X + 4,
-                EXPLORER_Y + EXP_PREVIEW_Y + 6 + i * 10,
-                st->preview[i], 0);
-  }
+  draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 132, 18, 10, 2);
+  draw_rect(EXPLORER_X + EXP_LIST_X + 22, EXPLORER_Y + 132, 24, 10, 8);
+  draw_string(EXPLORER_X + EXP_LIST_X + 4, EXPLORER_Y + 135, "UP", 15);
+  draw_string(EXPLORER_X + EXP_LIST_X + 26, EXPLORER_Y + 135, "DOWN", 15);
 }
 
 static void
@@ -529,16 +519,6 @@ main(int argc, char *argv[])
       if(rel_x >= 0 && rel_x <= 15 && rel_y >= 0 && rel_y <= 15)
         break;
 
-      if(rel_y >= 2 && rel_y <= 12){
-        if(rel_x >= 20 && rel_x <= 40){
-          open_selected(&st, 0);
-          draw_explorer(&st);
-        } else if(rel_x >= 44 && rel_x <= 72){
-          load_directory(&st);
-          draw_explorer(&st);
-        }
-      }
-
       if(rel_x >= EXP_LIST_X && rel_x < EXP_LIST_X + EXP_LIST_W &&
          rel_y >= EXP_LIST_Y && rel_y < EXP_LIST_Y + EXP_LIST_H){
         idx = st.scroll + (rel_y - EXP_LIST_Y) / EXP_ROW_H;
@@ -548,12 +528,12 @@ main(int argc, char *argv[])
         }
       }
 
-      if(rel_y >= 124 && rel_y <= 134){
+      if(rel_y >= 132 && rel_y <= 142){
         if(rel_x >= EXP_LIST_X && rel_x <= EXP_LIST_X + 18){
           if(st.scroll > 0)
             st.scroll--;
           draw_explorer(&st);
-        } else if(rel_x >= EXP_LIST_X + 22 && rel_x <= EXP_LIST_X + 40){
+        } else if(rel_x >= EXP_LIST_X + 22 && rel_x <= EXP_LIST_X + 46){
           if(st.scroll + EXP_VISIBLE_ROWS < st.nentries)
             st.scroll++;
           draw_explorer(&st);

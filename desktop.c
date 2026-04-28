@@ -6,8 +6,63 @@
 
 #define SCREEN_W 320
 #define SCREEN_H 200
+#define CURSOR_W 10
+#define CURSOR_H 14
 
 uchar wallpaper_buf[SCREEN_W * SCREEN_H];
+
+static char *cursor_shape[CURSOR_H] = {
+  "X         ",
+  "XX        ",
+  "X.X       ",
+  "X..X      ",
+  "X...X     ",
+  "X....X    ",
+  "X.....X   ",
+  "X......X  ",
+  "X...XXXX  ",
+  "X..X      ",
+  "X.X       ",
+  "XX        ",
+  "X         ",
+  "          ",
+};
+
+static void
+save_cursor_area(int x, int y, uchar backup[CURSOR_H][CURSOR_W])
+{
+  for(int i = 0; i < CURSOR_H; i++) {
+    for(int j = 0; j < CURSOR_W; j++) {
+      backup[i][j] = read_pixel(x + j, y + i);
+    }
+  }
+}
+
+static void
+restore_cursor_area(int x, int y, uchar backup[CURSOR_H][CURSOR_W])
+{
+  for(int i = 0; i < CURSOR_H; i++) {
+    for(int j = 0; j < CURSOR_W; j++) {
+      draw_pixel(x + j, y + i, backup[i][j]);
+    }
+  }
+}
+
+static void
+draw_cursor(int x, int y)
+{
+  char pixel;
+
+  for(int i = 0; i < CURSOR_H; i++) {
+    for(int j = 0; j < CURSOR_W; j++) {
+      pixel = cursor_shape[i][j];
+      if(pixel == 'X')
+        draw_pixel(x + j, y + i, 0);
+      else if(pixel == '.')
+        draw_pixel(x + j, y + i, 15);
+    }
+  }
+}
 
 static void
 draw_menu_apple(int x, int y)
@@ -71,7 +126,7 @@ int main(void) {
   int mouse_x = SCREEN_W / 2, mouse_y = SCREEN_H / 2;
   int old_x = mouse_x, old_y = mouse_y;
   int old_buttons = 0;
-  uchar cursor_backup[5][5];
+  uchar cursor_backup[CURSOR_H][CURSOR_W];
   int last_num_wins = 0;
 
   bg_win = win_create(0, 0, SCREEN_W, SCREEN_H);
@@ -81,12 +136,8 @@ int main(void) {
 
   load_wallpaper();
   draw_ui();
-  for(int i = 0; i < 5; i++) {
-    for(int j = 0; j < 5; j++) {
-	cursor_backup[i][j] = read_pixel(mouse_x + j, mouse_y + i);
-    }
-  }
-  draw_rect(mouse_x, mouse_y, 5, 5, 15); // Draw initial cursor
+  save_cursor_area(mouse_x, mouse_y, cursor_backup);
+  draw_cursor(mouse_x, mouse_y);
 
   while (1) {
     if (win_poll(bg_win, &ev) > 0) {
@@ -106,9 +157,9 @@ int main(void) {
         mouse_x += dx;
         mouse_y -= dy; 
         if (mouse_x < 0) mouse_x = 0;
-        if (mouse_x >= SCREEN_W - 5) mouse_x = SCREEN_W - 5;
-        if (mouse_y < 0) mouse_y = 0;
-        if (mouse_y >= SCREEN_H - 5) mouse_y = SCREEN_H - 5;
+	        if (mouse_x >= SCREEN_W - CURSOR_W) mouse_x = SCREEN_W - CURSOR_W;
+	        if (mouse_y < 0) mouse_y = 0;
+	        if (mouse_y >= SCREEN_H - CURSOR_H) mouse_y = SCREEN_H - CURSOR_H;
 
 	struct window wins[MAX_WINDOWS];
 	int num_wins = win_snapshot(wins, MAX_WINDOWS);
@@ -121,12 +172,8 @@ int main(void) {
 	  
 	  draw_ui();
 
-	  for (int i = 0; i < 5; i++) {
-	    for (int j = 0; j < 5; j++) {
-		    cursor_backup[i][j] = read_pixel(old_x + j, old_y + i);
-	    }
-	  }
-	}
+		  save_cursor_area(old_x, old_y, cursor_backup);
+		}
 
 	  last_num_wins = num_wins;
 	// Iterate backwards (from front of the screen to the back Z-order)
@@ -191,12 +238,7 @@ int main(void) {
         }
         old_buttons = buttons;
 
-        // Erase old cursor (fallback to cyan)
-	for (int i = 0; i < 5; i++) {
-           for (int j = 0; j < 5; j++) {
-		draw_pixel(old_x + j, old_y + i, cursor_backup[i][j]);
-	   }
-	}
+	        restore_cursor_area(old_x, old_y, cursor_backup);
 
         // If the cursor wiped out the UI, quickly redraw it
         if (old_y >= 180 || old_y <= 12) draw_ui(); 
@@ -204,14 +246,10 @@ int main(void) {
 	old_x = mouse_x;
 	old_y = mouse_y;
 
-	for (int i = 0; i < 5; i++) {
-	  for (int j = 0; j < 5; j++) {
-	    cursor_backup[i][j] = read_pixel(mouse_x + j, mouse_y + i);
-	  }
-	}
+		save_cursor_area(mouse_x, mouse_y, cursor_backup);
 
-        // Draw new cursor
-        draw_rect(mouse_x, mouse_y, 5, 5, 15); 
+	        // Draw new cursor
+	        draw_cursor(mouse_x, mouse_y);
       }
     }
   }
