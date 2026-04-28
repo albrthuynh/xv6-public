@@ -6,30 +6,32 @@
 #include "window.h"
 #include "gui.h"
 
-#define EXPLORER_X 12
+#define EXPLORER_X 8
 #define EXPLORER_Y 24
-#define EXPLORER_W 210
-#define EXPLORER_H 140
+#define EXPLORER_W 304
+#define EXPLORER_H 150
 #define SCREEN_W 320
 #define SCREEN_H 200
 
 #define EXPLORER_PATH_MAX 256
 #define EXPLORER_MAX_ENTRIES 32
-#define EXPLORER_PREVIEW_BYTES 192
-#define EXPLORER_PREVIEW_LINES 9
-#define EXPLORER_PREVIEW_COLS 24
+#define EXPLORER_PREVIEW_BYTES 320
+#define EXPLORER_PREVIEW_LINES 14
+#define EXPLORER_PREVIEW_COLS 36
 
 #define EXP_LIST_X 6
 #define EXP_LIST_Y 42
-#define EXP_LIST_W 198
-#define EXP_LIST_H 74
+#define EXP_LIST_W 122
+#define EXP_LIST_H 82
 #define EXP_ROW_H 8
 #define EXP_VISIBLE_ROWS (EXP_LIST_H / EXP_ROW_H)
 
-#define EXP_PREVIEW_X 92
-#define EXP_PREVIEW_Y 30
-#define EXP_PREVIEW_W 102
+#define EXP_PREVIEW_X 136
+#define EXP_PREVIEW_Y 32
+#define EXP_PREVIEW_W 160
 #define EXP_PREVIEW_H 110
+
+#define EXP_BUTTON_Y 132
 
 struct explorer_entry {
   char name[DIRSIZ + 1];
@@ -179,6 +181,27 @@ safe_char(char c)
   return '.';
 }
 
+static int
+is_elf_header(char *buf, int n)
+{
+  return n >= 4 && buf[0] == 0x7f && buf[1] == 'E' && buf[2] == 'L' && buf[3] == 'F';
+}
+
+static int
+is_probably_binary(char *buf, int n)
+{
+  int i;
+
+  for(i = 0; i < n; i++){
+    uchar c = buf[i];
+    if(c == 0)
+      return 1;
+    if(c < 32 && c != '\n' && c != '\r' && c != '\t')
+      return 1;
+  }
+  return 0;
+}
+
 static void
 copy_clipped_safe(char *dst, int max, const char *src)
 {
@@ -236,12 +259,27 @@ preview_file(struct explorer_state *st, const char *name)
     return;
   }
 
+  n = read(fd, buf, sizeof(buf));
+  if(is_elf_header(buf, n)){
+    close(fd);
+    preview_clear(st, name);
+    copy_clipped_safe(st->preview[1], EXPLORER_PREVIEW_COLS + 1, "BINARY ELF FILE");
+    copy_clipped_safe(st->preview[2], EXPLORER_PREVIEW_COLS + 1, "PREVIEW UNAVAILABLE");
+    return;
+  }
+  if(is_probably_binary(buf, n)){
+    close(fd);
+    preview_clear(st, name);
+    copy_clipped_safe(st->preview[1], EXPLORER_PREVIEW_COLS + 1, "BINARY FILE");
+    copy_clipped_safe(st->preview[2], EXPLORER_PREVIEW_COLS + 1, "PREVIEW UNAVAILABLE");
+    return;
+  }
+
   preview_clear(st, name);
   line = 1;
   col = 0;
   total = 0;
-  while(line < EXPLORER_PREVIEW_LINES && total < EXPLORER_PREVIEW_BYTES){
-    n = read(fd, buf, sizeof(buf));
+  for(;;){
     if(n <= 0)
       break;
     for(i = 0; i < n && total < EXPLORER_PREVIEW_BYTES; i++, total++){
@@ -268,6 +306,9 @@ preview_file(struct explorer_state *st, const char *name)
       st->preview[line][col++] = safe_char(c);
       st->preview[line][col] = 0;
     }
+    if(line >= EXPLORER_PREVIEW_LINES || total >= EXPLORER_PREVIEW_BYTES)
+      break;
+    n = read(fd, buf, sizeof(buf));
   }
 
   close(fd);
@@ -370,7 +411,7 @@ draw_entry_row(struct explorer_state *st, int row, int idx)
   int x;
   int y;
   int text_color;
-  char label[32];
+  char label[30];
   int i;
   int pos;
 
@@ -402,6 +443,33 @@ draw_entry_row(struct explorer_state *st, int row, int idx)
 }
 
 static void
+draw_preview_panel(struct explorer_state *st)
+{
+  int x;
+  int y;
+  int i;
+
+  x = st->x + EXP_PREVIEW_X;
+  y = st->y + EXP_PREVIEW_Y;
+
+  draw_rect(x, y, EXP_PREVIEW_W, EXP_PREVIEW_H, 15);
+  draw_rect(x, y, EXP_PREVIEW_W, 1, 0);
+  draw_rect(x, y + EXP_PREVIEW_H - 1, EXP_PREVIEW_W, 1, 0);
+  draw_rect(x, y, 1, EXP_PREVIEW_H, 0);
+  draw_rect(x + EXP_PREVIEW_W - 1, y, 1, EXP_PREVIEW_H, 0);
+
+  draw_rect(x + 1, y + 1, EXP_PREVIEW_W - 2, 10, 8);
+  draw_string(x + 4, y + 4, "PREVIEW", 15);
+
+  for(i = 0; i < EXPLORER_PREVIEW_LINES; i++){
+    int line_y = y + 15 + i * 6;
+    if(line_y + 5 >= y + EXP_PREVIEW_H)
+      break;
+    draw_string(x + 4, line_y, st->preview[i], 0);
+  }
+}
+
+static void
 draw_explorer(struct explorer_state *st)
 {
   int i;
@@ -412,7 +480,7 @@ draw_explorer(struct explorer_state *st)
   draw_rect(st->x, st->y, st->w, st->h, 7);
   draw_rect(st->x, st->y, st->w, 12, title_color);
   draw_rect(st->x + 2, st->y + 2, 8, 8, 4);
-  draw_string(st->x + 75, st->y + 4, "EXPLORER", 15);
+  draw_string(st->x + 120, st->y + 4, "EXPLORER", 15);
 
   draw_rect(st->x + 4, st->y + 16, st->w - 8, 10, 15);
   draw_label_clipped(st->x + 6, st->y + 18, st->cwd, 60, 0);
@@ -423,10 +491,12 @@ draw_explorer(struct explorer_state *st)
   for(i = 0; i < EXP_VISIBLE_ROWS; i++)
     draw_entry_row(st, i, st->scroll + i);
 
-  draw_rect(st->x + EXP_LIST_X, st->y + 122, 18, 10, 2);
-  draw_rect(st->x + EXP_LIST_X + 22, st->y + 122, 24, 10, 8);
-  draw_string(st->x + EXP_LIST_X + 4, st->y + 125, "UP", 15);
-  draw_string(st->x + EXP_LIST_X + 26, st->y + 125, "DOWN", 15);
+  draw_preview_panel(st);
+
+  draw_rect(st->x + EXP_LIST_X, st->y + EXP_BUTTON_Y, 18, 10, 2);
+  draw_rect(st->x + EXP_LIST_X + 22, st->y + EXP_BUTTON_Y, 24, 10, 8);
+  draw_string(st->x + EXP_LIST_X + 4, st->y + EXP_BUTTON_Y + 3, "UP", 15);
+  draw_string(st->x + EXP_LIST_X + 26, st->y + EXP_BUTTON_Y + 3, "DOWN", 15);
 }
 
 static void
@@ -569,7 +639,7 @@ main(int argc, char *argv[])
         }
       }
 
-      if(rel_y >= 122 && rel_y <= 132){
+      if(rel_y >= EXP_BUTTON_Y && rel_y <= EXP_BUTTON_Y + 10){
         if(rel_x >= EXP_LIST_X && rel_x <= EXP_LIST_X + 18){
           if(st.scroll > 0)
             st.scroll--;

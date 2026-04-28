@@ -122,14 +122,18 @@ UPROGS= \
 	_rm _sh _stressfs _terminal _usertests _wc _wm _zombie _desktop _about _bench _wallpick \
 #
 
+DEMOFILES= \
+	desktop.c explorer.c terminal.c wallpick.c window.c vga.c mouse.c gui.c \
+#
+
 wallgen: wallgen.c
 	gcc -Werror -Wall -o wallgen wallgen.c
 
 wallpaper_grid wallpaper_party wallpaper_night: wallgen
 	./wallgen
 
-fs.img: mkfs README wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
-	./mkfs fs.img README wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
+fs.img: mkfs README $(DEMOFILES) wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
+	./mkfs fs.img README $(DEMOFILES) wallpaper wallpaper_grid wallpaper_party wallpaper_night $(UPROGS)
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
