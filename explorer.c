@@ -8,7 +8,7 @@
 
 #define EXPLORER_X 12
 #define EXPLORER_Y 24
-#define EXPLORER_W 200
+#define EXPLORER_W 260
 #define EXPLORER_H 150
 
 #define EXPLORER_PATH_MAX 256
@@ -19,7 +19,7 @@
 
 #define EXP_LIST_X 6
 #define EXP_LIST_Y 42
-#define EXP_LIST_W 188
+#define EXP_LIST_W 248
 #define EXP_LIST_H 82
 #define EXP_ROW_H 8
 #define EXP_VISIBLE_ROWS (EXP_LIST_H / EXP_ROW_H)
@@ -327,7 +327,7 @@ load_directory(struct explorer_state *st)
 static void
 draw_label_clipped(int x, int y, const char *src, int limit, int color)
 {
-  char buf[32];
+  char buf[64];
   int i;
 
   if(limit > (int)sizeof(buf) - 1)
@@ -383,10 +383,10 @@ draw_explorer(struct explorer_state *st)
   draw_rect(EXPLORER_X, EXPLORER_Y, EXPLORER_W, EXPLORER_H, 7);
   draw_rect(EXPLORER_X, EXPLORER_Y, EXPLORER_W, 12, 1);
   draw_rect(EXPLORER_X + 2, EXPLORER_Y + 2, 8, 8, 4);
-  draw_string(EXPLORER_X + 70, EXPLORER_Y + 4, "EXPLORER", 15);
+  draw_string(EXPLORER_X + 100, EXPLORER_Y + 4, "EXPLORER", 15);
 
   draw_rect(EXPLORER_X + 4, EXPLORER_Y + 16, EXPLORER_W - 8, 10, 15);
-  draw_label_clipped(EXPLORER_X + 6, EXPLORER_Y + 18, st->cwd, 28, 0);
+  draw_label_clipped(EXPLORER_X + 6, EXPLORER_Y + 18, st->cwd, 60, 0);
 
   draw_rect(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + EXP_LIST_Y, EXP_LIST_W, EXP_LIST_H, 15);
   draw_string(EXPLORER_X + EXP_LIST_X, EXPLORER_Y + 34, "FILES", 0);

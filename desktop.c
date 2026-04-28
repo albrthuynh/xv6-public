@@ -86,6 +86,36 @@ draw_menu_apple(int x, int y)
   }
 }
 
+static void
+draw_terminal_icon(int x, int y)
+{
+  draw_rect(x, y, 16, 16, 8);
+  draw_rect(x + 1, y + 1, 14, 14, 0);
+  draw_rect(x + 3, y + 4, 2, 2, 10);
+  draw_rect(x + 5, y + 6, 2, 2, 10);
+  draw_rect(x + 3, y + 8, 2, 2, 10);
+  draw_rect(x + 8, y + 10, 5, 2, 10);
+}
+
+static void
+draw_finder_icon(int x, int y)
+{
+  draw_rect(x, y, 16, 16, 1);
+  draw_rect(x + 1, y + 1, 7, 14, 11);
+  draw_rect(x + 8, y + 1, 7, 14, 9);
+  draw_rect(x + 1, y + 1, 14, 2, 15);
+
+  draw_pixel(x + 5, y + 6, 0);
+  draw_pixel(x + 11, y + 6, 0);
+  draw_pixel(x + 8, y + 4, 0);
+  draw_pixel(x + 7, y + 5, 0);
+  draw_pixel(x + 8, y + 6, 0);
+  draw_pixel(x + 7, y + 11, 0);
+  draw_pixel(x + 8, y + 12, 0);
+  draw_pixel(x + 9, y + 12, 0);
+  draw_pixel(x + 10, y + 11, 0);
+}
+
 void draw_ui() {
   // 1. macOS Menu Bar (Top)
   draw_rect(0, 0, SCREEN_W, 12, 15); // White bar
@@ -94,10 +124,8 @@ void draw_ui() {
   // 2. macOS Dock (Bottom)
   draw_rect(100, 180, 120, 20, 7);   // Light gray dock background
 
-  // Dock Icon 1: Terminal (Dark Gray)
-  draw_rect(110, 182, 16, 16, 8); 
-  // Dock Icon 2: File Explorer (Blue)
-  draw_rect(140, 182, 16, 16, 1); 
+  draw_terminal_icon(110, 182);
+  draw_finder_icon(140, 182);
 }
 
 void load_wallpaper() {

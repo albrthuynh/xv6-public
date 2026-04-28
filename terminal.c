@@ -4,13 +4,13 @@
 #include "window.h"
 #include "gui.h"
 
-#define TERMINAL_X 56
+#define TERMINAL_X 20
 #define TERMINAL_Y 28
-#define TERMINAL_W 252
+#define TERMINAL_W 280
 #define TERMINAL_H 148
 
 #define TERM_HISTORY_LINES 72
-#define TERM_COLS 58
+#define TERM_COLS 64
 #define TERM_ROWS 16
 #define TERM_INPUT_MAX 128
 #define TERM_PATH_MAX 256
@@ -224,7 +224,7 @@ draw_terminal(struct terminal_state *st)
   draw_rect(TERMINAL_X, TERMINAL_Y, TERMINAL_W, TERMINAL_H, 8);
   draw_rect(TERMINAL_X, TERMINAL_Y, TERMINAL_W, 12, 0);
   draw_rect(TERMINAL_X + 2, TERMINAL_Y + 2, 8, 8, 4);
-  draw_string(TERMINAL_X + 98, TERMINAL_Y + 4, "TERMINAL", 15);
+  draw_string(TERMINAL_X + 124, TERMINAL_Y + 4, "TERMINAL", 15);
 
   draw_rect(TERMINAL_X + 4, TERMINAL_Y + 16, TERMINAL_W - 8, 104, 0);
   draw_rect(TERMINAL_X + 4, TERMINAL_Y + 124, TERMINAL_W - 8, 18, 1);
